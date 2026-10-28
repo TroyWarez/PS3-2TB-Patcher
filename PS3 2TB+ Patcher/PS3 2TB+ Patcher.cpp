@@ -86,47 +86,6 @@ bool PatchBinary(const string& filename, const vector<uint8_t>& pattern, const v
     return true;
 }
 
-// --- String Scanner and Patcher ---
-bool PatchString(const string& filename, const string& searchString, const string& replaceString) {
-    // 1. Read the file into memory
-    ifstream file(filename, ios::binary | ios::ate);
-    if (!file.is_open()) return false;
-
-    streamsize size = file.tellg();
-    file.seekg(0, ios::beg);
-    vector<char> buffer(size);
-    if (!file.read(buffer.data(), size)) return false;
-    file.close();
-
-    // 2. Search for the Sony URL
-    auto it = search(buffer.begin(), buffer.end(), searchString.begin(), searchString.end());
-    if (it == buffer.end()) {
-        return false; // Let the FatalError handler catch this
-    }
-
-    size_t foundOffset = distance(buffer.begin(), it);
-    cout << "[+] Update URL found at offset: 0x" << hex << foundOffset << dec << endl;
-
-    // 3. Inject the replacement string
-    for (size_t i = 0; i < replaceString.length(); ++i) {
-        buffer[foundOffset + i] = replaceString[i];
-    }
-
-    // 4. Pad the rest of the original string length with NULL bytes (0x00)
-    for (size_t i = replaceString.length(); i < searchString.length(); ++i) {
-        buffer[foundOffset + i] = 0x00;
-    }
-
-    // 5. Write back to disk
-    ofstream outfile(filename, ios::binary | ios::trunc);
-    if (!outfile.is_open()) return false;
-    outfile.write(buffer.data(), buffer.size());
-    outfile.close();
-
-    cout << "[+] Successfully neutralized update URL in " << filename << "!" << endl;
-    return true;
-}
-
 int main() {
     cout << "========================================" << endl;
     cout << "  PS3 2TB+ Patcher v1.3 (Safe Mode)" << endl;
