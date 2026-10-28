@@ -130,14 +130,10 @@ bool PatchString(const string& filename, const string& searchString, const strin
 
 int main() {
     cout << "========================================" << endl;
-    cout << "  PS3 2TB+ Patcher v1.2 (Safe Mode)" << endl;
+    cout << "  PS3 2TB+ Patcher v1.3 (Safe Mode)" << endl;
     cout << "========================================" << endl;
 
-    // --- STRINGS & HEX PATTERNS ---
-    string sonyURL = "http://fus01.ps3.update.playstation.net";
-    string dummyURL = "http://127.0.0.1";
     vector<uint8_t> nopPatch = { 0x60, 0x00, 0x00, 0x00 };
-    vector<uint8_t> minfreePatch = { 0x38, 0x60, 0x00, 0x01 }; // li r3, 1
 
     /*
        NOTE: You must verify these byte patterns in IDA Pro for your specific firmware.
@@ -153,24 +149,12 @@ int main() {
     vector<uint8_t> emer_pattern = { 0x7F, 0x84, 0x00, 0x40,  // cmpld cr7, r4, r0
                                      0x41, 0x9D, 0x00, 0x14 }; // bgt <fail> (Target)
 
-    // Pattern 3: emer_init UFS2 minfree reservation (8% -> 1%)
-    vector<uint8_t> minfree_pattern = { 0x38, 0x60, 0x00, 0x08,  // li r3, 8 (Target)
-                                        0x90, 0x7F, 0x01, 0x20,  // stw r3, 0x120(r31)
-                                        0x38, 0x80, 0x08, 0x00 }; // li r4, 2048 
-
 
     // --- STEP 1: DECRYPT ---
     cout << "\n[*] Decrypting files via scetool..." << endl;
-    if (!RunProcessSilent("scetool.exe -d update_plugin.sprx update_plugin.elf")) FatalError("Failed to decrypt update_plugin! Is scetool missing?");
-    if (!RunProcessSilent("scetool.exe -d lv2_kernel.self lv2_kernel.elf")) FatalError("Failed to decrypt LV2 Kernel!");
+    if (!RunProcessSilent("scetool.exe -d lv2_kernel.self lv2_kernel.elf")) FatalError("Failed to decrypt LV2 Kernel! Is scetool missing?");
     if (!RunProcessSilent("scetool.exe -d emer_init.self emer_init.elf")) FatalError("Failed to decrypt emer_init!");
 
-
-    // --- STEP 2: PATCH ---
-    cout << "\n[*] Patching auto-update URLs..." << endl;
-    if (!PatchString("update_plugin.elf", sonyURL, dummyURL)) {
-        FatalError("Sony Update URL missing in update_plugin.sprx.");
-    }
 
     cout << "[*] Scanning and Patching LV2 Kernel (2TB+ Truncation)..." << endl;
     if (!PatchBinary("lv2_kernel.elf", lv2_pattern, nopPatch, 4)) {
@@ -182,18 +166,10 @@ int main() {
         FatalError("emer_init 1.5TB gate pattern missing.");
     }
 
-    cout << "[*] Scanning and Patching emer_init minfree (8% -> 1%)..." << endl;
-    if (!PatchBinary("emer_init.elf", minfree_pattern, minfreePatch, 0)) {
-        FatalError("emer_init minfree reservation pattern missing.");
-    }
-
 
     // --- STEP 3: RE-ENCRYPT ---
     cout << "\n[*] Re-encrypting patched files..." << endl;
 
-    if (!RunProcessSilent("scetool.exe -e --type=SPRX --crypt-type=APP update_plugin.elf update_plugin_patched.sprx")) {
-        FatalError("Failed to re-encrypt update_plugin.sprx!");
-    }
 
     if (!RunProcessSilent("scetool.exe -e --type=SELF --crypt-type=OS --self-type=LV2 --compress-data=TRUE lv2_kernel.elf lv2_kernel_patched.self")) {
         FatalError("Failed to re-encrypt lv2_kernel.self!");
@@ -207,7 +183,6 @@ int main() {
     // --- STEP 4: CLEANUP ---
     DeleteFileA("lv2_kernel.elf");
     DeleteFileA("emer_init.elf");
-    DeleteFileA("update_plugin.elf");
 
     cout << "\n[+] SUCCESS! All patched files have been created successfully." << endl;
     cout << "[+] You may now inject them into your PS3UPDAT.PUP using MFW Builder." << endl;

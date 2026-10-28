@@ -3,5 +3,5 @@
     <Platform Name="x64" />
     <Platform Name="x86" />
   </Configurations>
-  <Project Path="PS3 2TB+ Patcher/PS3 2TB+ Patcher.vcxproj" />
+  <Project Path="PS3 2TB+ Patcher/PS3 2TB+ Patcher.vcxproj" Id="64a8706d-5f0b-456b-bf0a-7e8ed1c80f50" />
 </Solution>
