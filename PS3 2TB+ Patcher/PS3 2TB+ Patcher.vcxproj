@@ -21,7 +21,7 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>18.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{64a8706d-5f0b-456b-bf0a-7e8ed1c80f50}</ProjectGuid>
+    <ProjectGuid>{64A8706D-5F0B-456B-BF0A-7E8ED1C80F50}</ProjectGuid>
     <RootNamespace>PS32TBPatcher</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
