@@ -44,7 +44,6 @@ void FatalError(const string& message) {
     // Clean up any decrypted leftover files before aborting
     DeleteFileA("lv2_kernel.elf");
     DeleteFileA("emer_init.elf");
-    DeleteFileA("update_plugin.elf");
 
     system("pause");
     exit(1);
@@ -171,11 +170,11 @@ int main() {
     cout << "\n[*] Re-encrypting patched files..." << endl;
 
 
-    if (!RunProcessSilent("scetool.exe -e --type=SELF --crypt-type=OS --self-type=LV2 --compress-data=TRUE lv2_kernel.elf lv2_kernel_patched.self")) {
+    if (!RunProcessSilent("scetool.exe -0 SELF -t lv2_kernel.self -1 TRUE -e lv2_kernel.elf lv2_kernel_patched.self")) {
         FatalError("Failed to re-encrypt lv2_kernel.self!");
     }
 
-    if (!RunProcessSilent("scetool.exe -e --type=SELF --crypt-type=APP --self-auth-id=1010000001000003 emer_init.elf emer_init_patched.self")) {
+    if (!RunProcessSilent("scetool.exe -0 SELF -t emer_init.self -1 TRUE -e emer_init.elf emer_init_patched.self")) {
         FatalError("Failed to re-encrypt emer_init.self!");
     }
 
