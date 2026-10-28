@@ -143,7 +143,7 @@ int main() {
     DeleteFileA("emer_init.elf");
 
     cout << "\n[+] SUCCESS! All patched files have been created successfully." << endl;
-    cout << "[+] You may now inject them into your PS3UPDAT.PUP using MFW Builder." << endl;
+    cout << "[+] You may now create your NEW-PS3UPDAT.PUP using PUAD GUI and the repacking option by replacing the original files." << endl;
     system("pause");
     return 0;
 }
