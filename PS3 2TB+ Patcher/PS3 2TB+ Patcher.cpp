@@ -93,9 +93,9 @@ int main() {
 
     vector<uint8_t> nopPatch = { 0x60, 0x00, 0x00, 0x00 };
 
-    vector<uint8_t> 0x80Patch = { 0x80, 0x00 };
+    vector<uint8_t> FragPatch = { 0x80, 0x00 };
 
-    vector<uint8_t> 0x40Patch = { 0x40, 0x00 };
+    vector<uint8_t> BlockPatch = { 0x40, 0x00 };
 
     /*
        NOTE: You must verify these byte patterns in IDA Pro for your specific firmware.
@@ -135,17 +135,17 @@ int main() {
     }
 
     cout << "[*] Scanning and Patching emer_init (1.5TB Gate)..." << endl;
-    if (!PatchBinary("emer_init.elf", emer_pattern, nopPatch, 4)) {
+    if (!PatchBinary("emer_init.elf", emer_pattern_gate, nopPatch, 4)) {
         FatalError("emer_init 1.5TB gate pattern missing.");
     }
 
     cout << "[*] Scanning and Patching emer_init (Fragment Size)..." << endl;
-    if (!PatchBinary("emer_init.elf", emer_pattern_fragment, 0x40Patch, 4)) {
+    if (!PatchBinary("emer_init.elf", emer_pattern_fragment, FragPatch, 4)) {
         FatalError("emer_init fragment size pattern missing.");
     }
 
     cout << "[*] Scanning and Patching emer_init (Block Size)..." << endl;
-    if (!PatchBinary("emer_init.elf", emer_pattern_block, 0x80Patch, 4)) {
+    if (!PatchBinary("emer_init.elf", emer_pattern_block, BlockPatch, 4)) {
         FatalError("emer_init block size pattern missing.");
     }
 
