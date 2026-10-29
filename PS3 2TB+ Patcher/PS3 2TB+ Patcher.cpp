@@ -42,8 +42,8 @@ void FatalError(const string& message) {
     cout << "=======================================================\n" << endl;
 
     // Clean up any decrypted leftover files before aborting
-    DeleteFileA("lv2_kernel.elf");
-    DeleteFileA("emer_init.elf");
+    DeleteFile(L"lv2_kernel.elf");
+    DeleteFile(L"emer_init.elf");
 
     system("pause");
     exit(1);
@@ -91,11 +91,13 @@ int main() {
     cout << "  PS3 2TB+ Patcher v1.3 (Safe Mode)" << endl;
     cout << "========================================" << endl;
 
-    vector<uint8_t> nopPatch = { 0x60, 0x00, 0x00, 0x00 };
+    vector<uint8_t> nopKPatch = { 0x60, 0x00, 0x00, 0x00 };
 
-    vector<uint8_t> FragPatch = { 0x80, 0x00 };
+    vector<uint8_t> GatePatch = { 0x38, 0x00, 0x10, 0x00 }; // 16 TB gate increase
 
-    vector<uint8_t> BlockPatch = { 0x40, 0x00 };
+    vector<uint8_t> FragPatch = { 0x38, 0x00, 0x80, 0x00 };
+
+    vector<uint8_t> BlockPatch = { 0x38, 0x00, 0x40, 0x00 };
 
     /*
        NOTE: You must verify these byte patterns in IDA Pro for your specific firmware.
@@ -107,9 +109,10 @@ int main() {
                                     0x7B, 0x9C, 0x00, 0x20,  // clrldi r28, r28, 32 (Target)
                                     0x7C, 0x00, 0x4A, 0x14 }; // add r0, r0, r9
 
-    // Pattern 2: emer_init 1.5TB Gate (cmpld cr7, r4, r0 -> bgt <fail>)
-    vector<uint8_t> emer_pattern_gate = { 0x7F, 0x84, 0x00, 0x40,  // cmpld cr7, r4, r0
-                                     0x41, 0x9D, 0x00, 0x14 }; // bgt <fail> (Target)
+    // Pattern 2: emer_init 1.5TB Gate
+    vector<uint8_t> emer_pattern_gate = { 0x40, 0x9E, 0x01, 0x50,
+                                          0x38, 0x00, 0x01, 0x80,
+                                          0xE8, 0x81, 0x00, 0x78 };
 
 	// Pattern 3: emer_init fragment size
     vector<uint8_t> emer_pattern_fragment = { 0xF8, 0x01, 0x01, 0x10,
@@ -130,12 +133,12 @@ int main() {
 
 
     cout << "[*] Scanning and Patching LV2 Kernel (2TB+ Truncation)..." << endl;
-    if (!PatchBinary("lv2_kernel.elf", lv2_pattern, nopPatch, 4)) {
+    if (!PatchBinary("lv2_kernel.elf", lv2_pattern, nopKPatch, 4)) {
         FatalError("LV2 Kernel 32-bit truncation pattern missing.");
     }
 
     cout << "[*] Scanning and Patching emer_init (1.5TB Gate)..." << endl;
-    if (!PatchBinary("emer_init.elf", emer_pattern_gate, nopPatch, 4)) {
+    if (!PatchBinary("emer_init.elf", emer_pattern_gate, GatePatch, 4)) {
         FatalError("emer_init 1.5TB gate pattern missing.");
     }
 
@@ -163,8 +166,8 @@ int main() {
 
 
     // --- STEP 4: CLEANUP ---
-    DeleteFileA("lv2_kernel.elf");
-    DeleteFileA("emer_init.elf");
+    DeleteFile(L"lv2_kernel.elf");
+    DeleteFile(L"emer_init.elf");
 
     cout << "\n[+] SUCCESS! All patched files have been created successfully." << endl;
     cout << "[+] You may now create your NEW-PS3UPDAT.PUP using PUAD GUI and the repacking option by replacing the original files." << endl;
