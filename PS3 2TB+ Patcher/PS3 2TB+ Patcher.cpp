@@ -93,6 +93,10 @@ int main() {
 
     vector<uint8_t> nopPatch = { 0x60, 0x00, 0x00, 0x00 };
 
+    vector<uint8_t> 0x80Patch = { 0x80, 0x00 };
+
+    vector<uint8_t> 0x40Patch = { 0x40, 0x00 };
+
     /*
        NOTE: You must verify these byte patterns in IDA Pro for your specific firmware.
        These are example representations of the assembly described in the documentation.
@@ -104,8 +108,19 @@ int main() {
                                     0x7C, 0x00, 0x4A, 0x14 }; // add r0, r0, r9
 
     // Pattern 2: emer_init 1.5TB Gate (cmpld cr7, r4, r0 -> bgt <fail>)
-    vector<uint8_t> emer_pattern = { 0x7F, 0x84, 0x00, 0x40,  // cmpld cr7, r4, r0
+    vector<uint8_t> emer_pattern_gate = { 0x7F, 0x84, 0x00, 0x40,  // cmpld cr7, r4, r0
                                      0x41, 0x9D, 0x00, 0x14 }; // bgt <fail> (Target)
+
+	// Pattern 3: emer_init fragment size
+    vector<uint8_t> emer_pattern_fragment = { 0xF8, 0x01, 0x01, 0x10,
+                                      0x38, 0x00, 0x10, 0x00,
+                                      0xFA, 0x01, 0x00, 0x80 };
+
+	// Pattern 4: emer_init block size
+    vector<uint8_t> emer_pattern_block = { 0x90, 0x04, 0x00, 0x00,
+                                      0x38, 0x00, 0x20, 0x00,
+                                      0x91, 0x06, 0x00, 0x00 };
+
 
 
     // --- STEP 1: DECRYPT ---
@@ -124,6 +139,15 @@ int main() {
         FatalError("emer_init 1.5TB gate pattern missing.");
     }
 
+    cout << "[*] Scanning and Patching emer_init (Fragment Size)..." << endl;
+    if (!PatchBinary("emer_init.elf", emer_pattern_fragment, 0x40Patch, 4)) {
+        FatalError("emer_init fragment size pattern missing.");
+    }
+
+    cout << "[*] Scanning and Patching emer_init (Block Size)..." << endl;
+    if (!PatchBinary("emer_init.elf", emer_pattern_block, 0x80Patch, 4)) {
+        FatalError("emer_init block size pattern missing.");
+    }
 
     // --- STEP 3: RE-ENCRYPT ---
     cout << "\n[*] Re-encrypting patched files..." << endl;
