@@ -95,9 +95,9 @@ int main() {
 
     vector<uint8_t> GatePatch = { 0x38, 0x00, 0x10, 0x00 }; // 16 TB gate increase
 
-    vector<uint8_t> FragPatch = { 0x38, 0x00, 0x80, 0x00 };
+    vector<uint8_t> FragmentPatch = { 0x38, 0x00, 0x40, 0x00 };
 
-    vector<uint8_t> BlockPatch = { 0x38, 0x00, 0x40, 0x00 };
+    vector<uint8_t> DensityPatch = { 0x38, 0x00, 0x80, 0x00 };
 
     /*
        NOTE: You must verify these byte patterns in IDA Pro for your specific firmware.
@@ -114,15 +114,15 @@ int main() {
                                           0x38, 0x00, 0x01, 0x80,
                                           0xE8, 0x81, 0x00, 0x78 };
 
-	// Pattern 3: emer_init fragment size
-    vector<uint8_t> emer_pattern_fragment = { 0xF8, 0x01, 0x01, 0x10,
-                                      0x38, 0x00, 0x10, 0x00,
-                                      0xFA, 0x01, 0x00, 0x80 };
-
-	// Pattern 4: emer_init block size
-    vector<uint8_t> emer_pattern_block = { 0x90, 0x04, 0x00, 0x00,
+	// Pattern 3: emer_init fragement size
+    vector<uint8_t> emer_pattern_fragment = { 0x90, 0x04, 0x00, 0x00,
                                       0x38, 0x00, 0x20, 0x00,
                                       0x91, 0x06, 0x00, 0x00 };
+
+    // Pattern 4: emer_init inode density size
+    vector<uint8_t> emer_pattern_density = { 0xF8, 0x01, 0x01, 0x10,
+                                      0x38, 0x00, 0x10, 0x00,
+                                      0xFA, 0x01, 0x00, 0x80 };
 
 
 
@@ -142,14 +142,14 @@ int main() {
         FatalError("emer_init 1.5TB gate pattern missing.");
     }
 
-    cout << "[*] Scanning and Patching emer_init (Fragment Size)..." << endl;
-    if (!PatchBinary("emer_init.elf", emer_pattern_fragment, FragPatch, 4)) {
-        FatalError("emer_init fragment size pattern missing.");
+    cout << "[*] Scanning and Patching emer_init (Block Size)..." << endl;
+    if (!PatchBinary("emer_init.elf", emer_pattern_density, DensityPatch, 4)) {
+        FatalError("emer_init block size pattern missing.");
     }
 
-    cout << "[*] Scanning and Patching emer_init (Block Size)..." << endl;
-    if (!PatchBinary("emer_init.elf", emer_pattern_block, BlockPatch, 4)) {
-        FatalError("emer_init block size pattern missing.");
+    cout << "[*] Scanning and Patching emer_init (Fragment Size)..." << endl;
+    if (!PatchBinary("emer_init.elf", emer_pattern_fragment, FragmentPatch, 4)) {
+        FatalError("emer_init fragment size pattern missing.");
     }
 
     // --- STEP 3: RE-ENCRYPT ---
