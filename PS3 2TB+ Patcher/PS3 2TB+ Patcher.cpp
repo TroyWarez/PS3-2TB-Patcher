@@ -95,9 +95,11 @@ int main() {
 
     vector<uint8_t> GatePatch = { 0x38, 0x00, 0x10, 0x00 }; // 16 TB gate increase
 
-    vector<uint8_t> FragmentPatch = { 0x38, 0x00, 0x40, 0x00 };
+    vector<uint8_t> FragmentPatch = { 0x38, 0x00, 0x40, 0x00 }; // 16 KB fragment size
 
-    vector<uint8_t> DensityPatch = { 0x38, 0x00, 0x80, 0x00 };
+    vector<uint8_t> DensityPatch = { 0x38, 0x00, 0x80, 0x00 }; // 32 KB inode density
+
+    vector<uint8_t> FreespacePatch = { 0x3A, 0x40, 0x00, 0x01 }; // 1% ufs freespace percentage
 
     /*
        NOTE: You must verify these byte patterns in IDA Pro for your specific firmware.
@@ -110,19 +112,25 @@ int main() {
                                     0x7C, 0x00, 0x4A, 0x14 }; // add r0, r0, r9
 
     // Pattern 2: emer_init 1.5TB Gate
-    vector<uint8_t> emer_pattern_gate = { 0x40, 0x9E, 0x01, 0x50,
-                                          0x38, 0x00, 0x01, 0x80,
-                                          0xE8, 0x81, 0x00, 0x78 };
+    vector<uint8_t> emer_pattern_gate = { 0x40, 0x9E, 0x01, 0x50, // bne cr7,
+                                          0x38, 0x00, 0x01, 0x80, // li r0,0x180
+                                          0xE8, 0x81, 0x00, 0x78 }; // ld r4=>local_438,local_438(r1)
 
 	// Pattern 3: emer_init fragement size
-    vector<uint8_t> emer_pattern_fragment = { 0x90, 0x04, 0x00, 0x00,
-                                      0x38, 0x00, 0x20, 0x00,
-                                      0x91, 0x06, 0x00, 0x00 };
+    vector<uint8_t> emer_pattern_fragment = { 0x90, 0x04, 0x00, 0x00, // stw r0,0x0(r4)
+                                      0x38, 0x00, 0x20, 0x00,         // li r0,0x2000 (fragment size)
+                                      0x91, 0x06, 0x00, 0x00 };       // stw r8,0x0(r6)
 
     // Pattern 4: emer_init inode density size
-    vector<uint8_t> emer_pattern_density = { 0xF8, 0x01, 0x01, 0x10,
-                                      0x38, 0x00, 0x10, 0x00,
-                                      0xFA, 0x01, 0x00, 0x80 };
+    vector<uint8_t> emer_pattern_density = { 0xF8, 0x01, 0x01, 0x10, // std r0,local_res10(r1)
+                                             0x38, 0x00, 0x10, 0x00,  // li r0,0x1000 (inode density size)
+                                             0xFA, 0x01, 0x00, 0x80 }; // std r16,local_80(r1)
+
+	// Pattern 5: Freespace Percentage (not used in this patcher, but included for reference and untested.)
+    vector<uint8_t> emer_pattern_freespace = { 0x82, 0x62, 0x89, 0x58, // lwz r19,-0x76a8(r2)
+                                               0x3A, 0x40, 0x00, 0x08,  // li r18,0x8 (free space percentage)
+                                               0x83, 0xE2, 0x89, 0x5C }; // lwz r31,-0x76a4(r2)
+
 
 
 
