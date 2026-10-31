@@ -107,7 +107,7 @@ int main() {
     */
 
     // Pattern 1: LV2 Kernel Truncation (clrldi r28, r28, 32 -> add r0, r0, r9)
-    vector<uint8_t> lv2_pattern = { 0x78, 0x0B, 0x00, 0x20,  // clrldi r0, r11, 32
+    vector<uint8_t> lv2_pattern = { 0x79, 0x60, 0x00, 0x20,  // clrldi r0, r11, 32
                                     0x7B, 0x9C, 0x00, 0x20,  // clrldi r28, r28, 32 (Target)
                                     0x7C, 0x00, 0x4A, 0x14 }; // add r0, r0, r9
 
