@@ -164,11 +164,11 @@ int main() {
     cout << "\n[*] Re-encrypting patched files..." << endl;
 
 
-    if (!RunProcessSilent("scetool.exe -0 SELF -t lv2_kernel.self -1 TRUE -e lv2_kernel.elf lv2_kernel_patched.self")) {
+    if (!RunProcessSilent("scetool.exe -0 SELF -t lv2_kernel.self -1 TRUE -e lv2_kernel.elf lv2_kernel_patched.selfP")) {
         FatalError("Failed to re-encrypt lv2_kernel.self!");
     }
 
-    if (!RunProcessSilent("scetool.exe -0 SELF -t emer_init.self -1 TRUE -e emer_init.elf emer_init_patched.self")) {
+    if (!RunProcessSilent("scetool.exe -0 SELF -t emer_init.self -1 TRUE -e emer_init.elf emer_init.selfP")) {
         FatalError("Failed to re-encrypt emer_init.self!");
     }
 
