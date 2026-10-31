@@ -95,9 +95,9 @@ int main() {
 
     vector<uint8_t> GatePatch = { 0x38, 0x00, 0x10, 0x00 }; // 16 TB gate increase
 
-    vector<uint8_t> FragmentPatch = { 0x38, 0x00, 0x40, 0x00 }; // 16 KB fragment size
+    vector<uint8_t> FragmentPatch = { 0x38, 0x00, 0x80, 0x00 }; // 32 KB fragment size
 
-    vector<uint8_t> DensityPatch = { 0x38, 0x00, 0x80, 0x00 }; // 32 KB inode density
+    vector<uint8_t> DensityPatch = { 0x38, 0x00, 0x40, 0x00 }; // 16 KB inode density
 
     vector<uint8_t> FreespacePatch = { 0x3A, 0x40, 0x00, 0x01 }; // 1% ufs freespace percentage
 
