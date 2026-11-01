@@ -87,11 +87,13 @@ bool PatchBinary(const string& filename, const vector<uint8_t>& pattern, const v
 }
 
 int main() {
-    cout << "========================================" << endl;
-    cout << "  PS3 2TB+ Patcher v1.3 (Safe Mode)" << endl;
-    cout << "========================================" << endl;
+    cout << "========================================"
+         << "\n  PS3 2TB+ Patcher v1.4 (Safe Mode)"
+         << "\n========================================" << endl;
 
     vector<uint8_t> nopKPatch = { 0x60, 0x00, 0x00, 0x00 };
+
+	vector<uint8_t> KBufferPatch = { 0x3C, 0x00, 0x00, 0x08 }; // 8 KB kernel buffer size
 
     vector<uint8_t> GatePatch = { 0x38, 0x00, 0x10, 0x00 }; // 16 TB gate increase
 
@@ -107,26 +109,33 @@ int main() {
     */
 
     // Pattern 1: LV2 Kernel Truncation (clrldi r28, r28, 32 -> add r0, r0, r9)
-    vector<uint8_t> lv2_pattern = { 0x79, 0x60, 0x00, 0x20,  // clrldi r0, r11, 32
+    vector<uint8_t> lv2_pattern_trunc = { 0x79, 0x60, 0x00, 0x20,  // clrldi r0, r11, 32
                                     0x7B, 0x9C, 0x00, 0x20,  // clrldi r28, r28, 32 (Target)
                                     0x7C, 0x00, 0x4A, 0x14 }; // add r0, r0, r9
 
-    // Pattern 2: emer_init 1.5TB Gate
+    // Pattern 2: LV2 Kernel Mount Buffer (clrldi r28, r28, 32 -> add r0, r0, r9)
+    vector<uint8_t> lv2_pattern_mount_buffer = {
+                                        0x7F, 0xA0, 0x2A, 0x14, //add r29,r0,r5
+                                        0x3C, 0x00, 0x00, 0x02, // li r0, 2
+                                        0x7F, 0x9D, 0x00, 0x40, // cmplw cr7, r29, r0
+    };
+
+    // Pattern 3: emer_init 1.5TB Gate
     vector<uint8_t> emer_pattern_gate = { 0x40, 0x9E, 0x01, 0x50, // bne cr7,
                                           0x38, 0x00, 0x01, 0x80, // li r0,0x180
                                           0xE8, 0x81, 0x00, 0x78 }; // ld r4=>local_438,local_438(r1)
 
-	// Pattern 3: emer_init fragement size
+	// Pattern 4: emer_init fragement size
     vector<uint8_t> emer_pattern_fragment = { 0x90, 0x04, 0x00, 0x00, // stw r0,0x0(r4)
                                       0x38, 0x00, 0x20, 0x00,         // li r0,0x2000 (fragment size)
                                       0x91, 0x06, 0x00, 0x00 };       // stw r8,0x0(r6)
 
-    // Pattern 4: emer_init inode density size
+    // Pattern 5: emer_init inode density size
     vector<uint8_t> emer_pattern_density = { 0xF8, 0x01, 0x01, 0x10, // std r0,local_res10(r1)
                                              0x38, 0x00, 0x10, 0x00,  // li r0,0x1000 (inode density size)
                                              0xFA, 0x01, 0x00, 0x80 }; // std r16,local_80(r1)
 
-	// Pattern 5: Freespace Percentage (not used in this patcher, but included for reference and untested.)
+	// Pattern 6: Freespace Percentage (not used in this patcher, but included for reference and untested.)
     vector<uint8_t> emer_pattern_freespace = { 0x82, 0x62, 0x89, 0x58, // lwz r19,-0x76a8(r2)
                                                0x3A, 0x40, 0x00, 0x08,  // li r18,0x8 (free space percentage)
                                                0x83, 0xE2, 0x89, 0x5C }; // lwz r31,-0x76a4(r2)
@@ -141,8 +150,13 @@ int main() {
 
 
     cout << "[*] Scanning and Patching LV2 Kernel (2TB+ Truncation)..." << endl;
-    if (!PatchBinary("lv2_kernel.elf", lv2_pattern, nopKPatch, 4)) {
+    if (!PatchBinary("lv2_kernel.elf", lv2_pattern_trunc, nopKPatch, 4)) {
         FatalError("LV2 Kernel 32-bit truncation pattern missing.");
+    }
+
+    cout << "[*] Scanning and Patching LV2 Kernel Mount Buffer..." << endl;
+    if (!PatchBinary("lv2_kernel.elf", lv2_pattern_mount_buffer, KBufferPatch, 4)) {
+        FatalError("LV2 Kernel mount buffer pattern missing.");
     }
 
     cout << "[*] Scanning and Patching emer_init (1.5TB Gate)..." << endl;
@@ -164,11 +178,11 @@ int main() {
     cout << "\n[*] Re-encrypting patched files..." << endl;
 
 
-    if (!RunProcessSilent("scetool.exe -0 SELF -t lv2_kernel.self -1 TRUE -e lv2_kernel.elf lv2_kernel.selfP")) {
+    if (!RunProcessSilent("scetool.exe -0 SELF -t lv2_kernel.self -1 TRUE -e lv2_kernel.elf lv2_kernelP.self")) {
         FatalError("Failed to re-encrypt lv2_kernel.self!");
     }
 
-    if (!RunProcessSilent("scetool.exe -0 SELF -t emer_init.self -1 TRUE -e emer_init.elf emer_init.selfP")) {
+    if (!RunProcessSilent("scetool.exe -0 SELF -t emer_init.self -1 TRUE -e emer_init.elf emer_initP.self")) {
         FatalError("Failed to re-encrypt emer_init.self!");
     }
 
@@ -177,8 +191,11 @@ int main() {
     DeleteFile(L"lv2_kernel.elf");
     DeleteFile(L"emer_init.elf");
 
-    cout << "\n[+] SUCCESS! All patched files have been created successfully." << endl;
-    cout << "[+] You may now create your NEW-PS3UPDAT.PUP using PUAD GUI and the repacking option by replacing the original files." << endl;
+    cout << "\n[+] SUCCESS! All patched files have been created successfully." <<
+            "\n[+] PLEASE NOTE: The patched files are named with a 'P' suffix (e.g., lv2_kernelP.self)."
+            "\n[+] WARNING: You must test lv2_kernelP.self before using it. Copy it to a USB FAT32 flash drive with original name \"lv2_kernel.self\" and load it using advance service"
+            "\n[+] tools and make sure it doesn\'t red light upon reboot or fail to load the patched kernel." <<
+            "\n[+] You may now create your NEW-PS3UPDAT.PUP using PUAD GUI and the repacking option by replacing the original files." << endl;
     system("pause");
     return 0;
 }
