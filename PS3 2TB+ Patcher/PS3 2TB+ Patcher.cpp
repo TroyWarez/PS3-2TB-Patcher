@@ -193,8 +193,8 @@ int main() {
 
     cout << "\n[+] SUCCESS! All patched files have been created successfully." <<
             "\n[+] PLEASE NOTE: The patched files are named with a 'P' suffix (e.g., lv2_kernelP.self)."
-            "\n[+] WARNING: You must test lv2_kernelP.self before using it. Copy it to a USB FAT32 flash drive with original name \"lv2_kernel.self\" and load it using advance service"
-            "\n[+] tools and make sure it doesn\'t red light upon reboot or fail to load the patched kernel." <<
+            "\n[+] WARNING: You must test lv2_kernelP.self before using it. Copy it to a USB FAT32 flash drive with original name \"lv2_kernel.self\" and load it using \"Advance Service"
+            "\n[+] Tools\" with the right most USB port (/USB00000) and make sure it doesn\'t red light upon reboot or fail to load the patched kernel." <<
             "\n[+] You may now create your NEW-PS3UPDAT.PUP using PUAD GUI and the repacking option by replacing the original files." << endl;
     system("pause");
     return 0;
