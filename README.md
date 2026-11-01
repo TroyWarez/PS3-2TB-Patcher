@@ -39,6 +39,7 @@ This tool automatically unpacks, hex-patches, and re-encrypts the following bott
 ## 🚀 Usage Instructions
 ### Setup
 1. Copy all files from the release folder into the `PUAD GUI\bin` folder
+2. Make sure you have the most update to date keys in the `data` folder for your firmware
 
 
 ### Step 1: Extract Base Firmware
