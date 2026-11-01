@@ -16,70 +16,69 @@ This tool automatically unpacks, hex-patches, and re-encrypts the following bott
 1. **The 1.5 TB Recovery Gate (`emer_init.self`)**
    * *The Problem:* Safe Mode contains a hardcoded artificial gate that aborts formatting if a drive exceeds 1536 GiB.
    * *The Patch:* NOPs the `bgt` instruction, allowing the UI to accept 4TB drives.
-2. **The 2 TB LV2 Truncation (`lv2_kernel.self`)**
+2. **The 8 KB Fragment Size (`emer_init.self`)**
+   * *The Problem:* A small fragment size will overrun the 128 kb buffer in the level 2 kernel with large discs
+   * *The Patch:* Increase the fragment size to 64 KB
+3. **The 16 KB Density File Node Size (`emer_init.self`)**
+   * *The Problem:* A small density node size will overrun the 128 kb buffer in the level 2 kernel with large discs
+   * *The Patch:* Increase the density size to 16 KB
+3. **The 2 TB LV2 Truncation (`lv2_kernel.self`)**
    * *The Problem:* The PS3 hypervisor handles 64-bit math, but the GameOS kernel truncates the region size to 32 bits (`clrldi r28, r28, 32`), blinding the system to anything past 2.2 TB.
    * *The Patch:* NOPs the truncation instruction, leaving the kernel 64-bit clean.
-3. **The 8% UFS2 Space Reservation (`emer_init.self`)**
-   * *The Problem:* The PS3 reserves 8% of the drive (`minfree`) for root overhead. On a 4TB drive, this locks away over 300 GB of usable space.
-   * *The Patch:* Alters the PowerPC `li r3, 8` instruction to `li r3, 1`, reducing reserved space to 1% and reclaiming ~280 GB.
-4. **Auto-Update Neutralization (`update_plugin.sprx`)**
-   * *The Problem:* Accidental Sony OTA updates will overwrite the patched kernel and corrupt the 4TB file system.
-   * *The Patch:* Replaces Sony update server URLs with `127.0.0.1` loopbacks.
+
 
 ## 📋 Prerequisites
 
 * **Windows OS** (The C++ tool utilizes the Win32 API for silent process execution).
-* **scetool.exe** (Must be placed in the same directory as the patcher, along with the `keys` folder).
-* **PS3 PUP Extractor** (To unpack your base Custom Firmware).
-* **PS3 MFW Builder** (To correctly hash and repack the CoreOS `.PUP`).
-* A base Custom Firmware (e.g., Evilnat 4.90 or 4.91).
+* **PUAD GUI v2.0 [WIP]** (To correctly hash and repack the CoreOS `.PUP`).
+* A base Custom Firmware (e.g., Evilnat 4.90 or 4.93).
 
 ## 🚀 Usage Instructions
+### Setup
+1. Copy all files from the release folder into the `PUAD GUI\bin` folder
+
 
 ### Step 1: Extract Base Firmware
-1. Use a PUP Extractor to unpack your chosen CFW `PS3UPDAT.PUP`.
-2. Extract `update_ros.tar` to locate **`lv2_kernel.self`**.
-3. Extract `update_files.tar` to locate **`emer_init.self`** and **`update_plugin.sprx`**.
+1. Open **PAUD GUI Builder**.
+2. Click on the ellipses (...) and open your target * `.PUP` file that you extracted earlier in the guide.
+3. Then open the folder you wish you use for repacking with the new files and click select folder.
+4. Click on the radio button under the mode section select `Unpack`
+5. Copy the files in * `Custom_PS3_Files\update_files\CORE_OS_PACKAGE` named `lv2_kernel.self` and `emer_init.self` to the `PUAD GUI\bin` folder
 
 ### Step 2: Run the Patcher
-1. Place the extracted `.self` and `.sprx` files in the root directory of this tool.
-2. Ensure `scetool.exe` and its `keys` directory are present.
-3. Run `PS3_2TB_Patcher.exe`.
+1. Place the extracted `.self` files in the root directory of this tool.
+2. Ensure `scetool.exe` and its `data` directory are present.
+3. Run `PS3 2TB+ Patcher.exe`.
 4. The tool will silently decrypt the files, scan for the required byte patterns, inject the patches, and output `_patched` versions of the files.
 
 ### Step 3: Prepare the Patched Files for Injection
-Before using MFW Builder, you must rename the output files back to their original names and place them in a specific folder structure so MFW Builder knows exactly where to inject them.
+Before using PUAD GUI, you must rename the output files back to their original names and place them in a specific folder structure so MFW Builder knows exactly where to inject them.
 
 1. Rename the files:
-   * `lv2_kernel_patched.self` ➔ `lv2_kernel.self`
-   * `emer_init_patched.self` ➔ `emer_init.self`
-   * `update_plugin_patched.sprx` ➔ `update_plugin.sprx`
+   * `lv2_kernel.selfP` ➔ `lv2_kernel.self`
+   * `emer_init.selfP` ➔ `emer_init.self`
 2. Create a new folder on your desktop called `Custom_PS3_Files`.
 3. Inside that folder, create the following exact directory structure and place the files inside:
    * `Custom_PS3_Files/CoreOS/lv2_kernel.self`
-   * `Custom_PS3_Files/dev_flash/sys/internal/emer_init.self`
-   * `Custom_PS3_Files/dev_flash/vsh/module/update_plugin.sprx`
+   * `Custom_PS3_Files/CoreOS/emer_init.self`
 
-### Step 4: Build the Firmware using MFW Builder
-You cannot just ZIP the files back up. You must use MFW Builder so the PS3's cryptographic CoreOS hashes are correctly recalculated.
+### Step 4: Build the Firmware using PAUD GUI
 
-1. Open **MFW Builder**.
-2. In the **Original Firmware** field, select your unmodified base CFW `.PUP` (e.g., *Evilnat_4.91.PUP*).
-3. In the **Modified Firmware** field, choose a save location and name for your new file (e.g., *Evilnat_4TB_Patched.PUP*).
-4. On the left sidebar, **uncheck all default tasks** except for the following two:
-   * `Patch CoreOS` (or `Change CoreOS files`)
-   * `Patch custom files` (or `Replace dev_flash files`)
-5. Click on the **Patch CoreOS** task in the sidebar, and point the directory setting to your `Custom_PS3_Files/CoreOS/` folder.
-6. Click on the **Patch custom files** task in the sidebar, and point the directory setting to your `Custom_PS3_Files/dev_flash/` folder.
-7. Click **Build MFW**.
-8. MFW Builder will automatically unpack the base PUP, swap in your patched files, recalculate the secure hashes, and pack it into a pristine `.PUP`.
+1. Open **PAUD GUI Builder**.
+2. Click on the ellipses (...) and open your target * `.PUP` file that you extracted earlier in the guide.
+3. Then open the folder you wish you use for repacking with the new files and click select folder.
+4. Click on the radio button under the mode section select `Repack`
+5. Also select the radio button under the `Firmware` section, select whatever firmware yours happens to be: "FW 4.XX" or  "FW 3.XX"
+6. Lastly select the radio button under the `CoreOS` and click on the blue button named `CORE_OS`
+7. Now click start
+8. Finally replace the files in * `Custom_PS3_Files\update_files\CORE_OS_PACKAGE` with `lv2_kernel.self` and `emer_init.self`
 
 ### Step 5: Format and Install
 1. Put your newly built `PS3UPDAT.PUP` on a FAT32 USB drive (`PS3/UPDATE/PS3UPDAT.PUP`).
 2. Insert your blank 4TB drive into the PS3.
 3. Boot the PS3 into **Safe Mode**.
 4. Select **Option 6: System Update**.
-5. The PS3 will read your patched firmware, bypass the 1.5TB UI gate, format the drive with 1% reserved space, and boot into the XMB utilizing the full 64-bit geometry!
+5. The PS3 will read your patched firmware, bypass the 1.5TB UI gate and boot into the XMB utilizing the full 64-bit geometry!
 
 ## 🛑 Troubleshooting: "FATAL ERROR: Pattern Missing"
 
@@ -96,7 +95,7 @@ You must manually verify the new hex pattern for your specific firmware version:
 1. Open the decrypted `lv2_kernel.elf` or `emer_init.elf` in a disassembler like **IDA Pro** or **Ghidra**.
 2. Search for the assembly instructions documented in the source code.
 3. Once found, copy the new Hex Opcode sequence.
-4. Open the `main.cpp` source code of this tool, update the `vector<uint8_t>` hex arrays to match your firmware's specific pattern, and recompile the tool.
+4. Open the `PS3 2TB+ Patcher.cpp` source code of this tool, update the `vector<uint8_t>` hex arrays to match your firmware's specific pattern, and recompile the tool.
 
 ## 🛠️ Compiling the Source
 Open `main.cpp` in Visual Studio or compile via MinGW:
