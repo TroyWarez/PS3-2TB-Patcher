@@ -25,6 +25,9 @@ This tool automatically unpacks, hex-patches, and re-encrypts the following bott
 3. **The 2 TB LV2 Truncation (`lv2_kernel.self`)**
    * *The Problem:* The PS3 hypervisor handles 64-bit math, but the GameOS kernel truncates the region size to 32 bits (`clrldi r28, r28, 32`), blinding the system to anything past 2.2 TB.
    * *The Patch:* NOPs the truncation instruction, leaving the kernel 64-bit clean.
+4. **The LV2 Mount Buffer Size (`lv2_kernel.self`)**
+   * *The Problem:* The PS3 hypervisor mount buffer is now too small with the current mount buffer size of 128kb,  
+   * *The Patch:* The PS3 hypervisor mount buffer is now 1024 kb in size.
 
 
 ## 📋 Prerequisites
@@ -41,26 +44,26 @@ This tool automatically unpacks, hex-patches, and re-encrypts the following bott
 ### Step 1: Extract Base Firmware
 1. Open **PAUD GUI Builder**.
 2. Click on the ellipses (...) and open your target * `.PUP` file that you extracted earlier in the guide.
-3. Then open the folder you wish you use for repacking with the new files and click select folder.
+3. Then open the folder you wish you use for repacking with the new files and click select a temp folder for your extracted CFW files.
 4. Click on the radio button under the mode section select `Unpack`
-5. Copy the files in * `Custom_PS3_Files\update_files\CORE_OS_PACKAGE` named `lv2_kernel.self` and `emer_init.self` to the `PUAD GUI\bin` folder
+5. Copy the files in * `update_files/CORE_OS_PACKAGE` named `lv2_kernel.self` and `emer_init.self` to the `PUAD GUI\bin` folder
 
 ### Step 2: Run the Patcher
 1. Place the extracted `.self` files in the root directory of this tool.
 2. Ensure `scetool.exe` and its `data` directory are present.
 3. Run `PS3 2TB+ Patcher.exe`.
-4. The tool will silently decrypt the files, scan for the required byte patterns, inject the patches, and output `_patched` versions of the files.
+4. The tool will silently decrypt the files, scan for the required byte patterns, inject the patches, and output `P.self` versions of the files.
 
 ### Step 3: Prepare the Patched Files for Injection
 Before using PUAD GUI, you must rename the output files back to their original names and place them in a specific folder structure so MFW Builder knows exactly where to inject them.
 
 1. Rename the files:
-   * `lv2_kernel.selfP` ➔ `lv2_kernel.self`
-   * `emer_init.selfP` ➔ `emer_init.self`
+   * `lv2_kernelP.self` ➔ `lv2_kernel.self`
+   * `emer_initP.self` ➔ `emer_init.self`
 2. Create a new folder on your desktop called `Custom_PS3_Files`.
 3. Inside that folder, create the following exact directory structure and place the files inside:
-   * `Custom_PS3_Files/CoreOS/lv2_kernel.self`
-   * `Custom_PS3_Files/CoreOS/emer_init.self`
+   * `update_files/CORE_OS_PACKAGE/lv2_kernel.self`
+   * `update_files/CORE_OS_PACKAGE/emer_init.self`
 
 ### Step 4: Build the Firmware using PAUD GUI
 
@@ -98,6 +101,11 @@ You must manually verify the new hex pattern for your specific firmware version:
 4. Open the `PS3 2TB+ Patcher.cpp` source code of this tool, update the `vector<uint8_t>` hex arrays to match your firmware's specific pattern, and recompile the tool.
 
 ## 🛠️ Compiling the Source
-Open `main.cpp` in Visual Studio or compile via MinGW:
-```bash
-g++ main.cpp -o PS3_4TB_Patcher.exe -static-libgcc -static-libstdc++
+Open `PS3 2TB+ Patcher.cpp` in Visual Studio or compile via MinGW:
+``bash
+g++ 'PS3 2TB+ Patcher.cpp' -o PS3_4TB_Patcher.exe -static-libgcc -static-libstdc++``
+## Credits
+Researcher and finder of the problematic instructions (Original article on the PS3 Dev wiki and mount buffer issue finder)
+@sagemono
+@TroyWarez
+Developer and finder of the missing UFS2 format parameters cylinder-group geometry initial values inside .
