@@ -15,7 +15,7 @@ This tool automatically unpacks, hex-patches, and re-encrypts the following bott
 
 1. **The 1.5 TB Recovery Gate (`emer_init.self`)**
    * *The Problem:* Safe Mode contains a hardcoded artificial gate that aborts formatting if a drive exceeds 1536 GiB.
-   * *The Patch:* NOPs the `bgt` instruction, allowing the UI to accept 4TB drives.
+   * *The Patch:* Change the `bgt` instruction, allowing the UI to accept up to 16TB drives.
 2. **The 8 KB Fragment Size (`emer_init.self`)**
    * *The Problem:* A small fragment size will overrun the 128 kb buffer in the level 2 kernel with large discs
    * *The Patch:* Increase the fragment size to 64 KB
