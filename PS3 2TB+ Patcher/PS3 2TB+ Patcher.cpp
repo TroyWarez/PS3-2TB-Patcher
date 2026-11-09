@@ -164,9 +164,9 @@ int main() {
         FatalError("emer_init 1.5TB gate pattern missing.");
     }
 
-    cout << "[*] Scanning and Patching emer_init (Block Size)..." << endl;
+    cout << "[*] Scanning and Patching emer_init (Density Size)..." << endl;
     if (!PatchBinary("emer_init.elf", emer_pattern_density, DensityPatch, 4)) {
-        FatalError("emer_init block size pattern missing.");
+        FatalError("emer_init density size pattern missing.");
     }
 
     cout << "[*] Scanning and Patching emer_init (Fragment Size)..." << endl;
