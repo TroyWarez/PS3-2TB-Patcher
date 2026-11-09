@@ -88,18 +88,18 @@ bool PatchBinary(const string& filename, const vector<uint8_t>& pattern, const v
 
 int main() {
     cout << "========================================"
-         << "\n  PS3 2TB+ Patcher v1.4 (Safe Mode)"
+         << "\n  PS3 2TB+ Patcher v1.5 (Safe Mode)"
          << "\n========================================" << endl;
 
     vector<uint8_t> nopKPatch = { 0x60, 0x00, 0x00, 0x00 };
 
-	vector<uint8_t> KBufferPatch = { 0x3C, 0x00, 0x00, 0x08 }; // 8 KB kernel buffer size
+	vector<uint8_t> KBufferPatch = { 0x3C, 0x00, 0x00, 0x4 }; // 512 KB kernel buffer size
 
     vector<uint8_t> GatePatch = { 0x38, 0x00, 0x10, 0x00 }; // 16 TB gate increase
 
-    vector<uint8_t> FragmentPatch = { 0x38, 0x00, 0x80, 0x00 }; // 32 KB fragment size
+    vector<uint8_t> FragmentPatch = { 0x38, 0x00, 0x40, 0x00 }; // 16 KB fragment size
 
-    vector<uint8_t> DensityPatch = { 0x38, 0x00, 0x40, 0x00 }; // 16 KB inode density
+    vector<uint8_t> DensityPatch = { 0x38, 0x00, 0x80, 0x00 }; // 32 KB inode density
 
     vector<uint8_t> FreespacePatch = { 0x3A, 0x40, 0x00, 0x01 }; // 1% ufs freespace percentage
 
@@ -125,14 +125,14 @@ int main() {
                                           0x38, 0x00, 0x01, 0x80, // li r0,0x180
                                           0xE8, 0x81, 0x00, 0x78 }; // ld r4=>local_438,local_438(r1)
 
-	// Pattern 4: emer_init fragement size
-    vector<uint8_t> emer_pattern_fragment = { 0x90, 0x04, 0x00, 0x00, // stw r0,0x0(r4)
-                                      0x38, 0x00, 0x20, 0x00,         // li r0,0x2000 (fragment size)
+	// Pattern 4: emer_init inode density size
+    vector<uint8_t> emer_pattern_density = { 0x90, 0x04, 0x00, 0x00, // stw r0,0x0(r4)
+                                      0x38, 0x00, 0x20, 0x00,         // li r0,0x2000 (inode density size)
                                       0x91, 0x06, 0x00, 0x00 };       // stw r8,0x0(r6)
 
-    // Pattern 5: emer_init inode density size
-    vector<uint8_t> emer_pattern_density = { 0xF8, 0x01, 0x01, 0x10, // std r0,local_res10(r1)
-                                             0x38, 0x00, 0x10, 0x00,  // li r0,0x1000 (inode density size)
+    // Pattern 5: emer_init fragment size
+    vector<uint8_t> emer_pattern_fragment = { 0xF8, 0x01, 0x01, 0x10, // std r0,local_res10(r1)
+                                             0x38, 0x00, 0x10, 0x00,  // li r0,0x1000 (fragment size)
                                              0xFA, 0x01, 0x00, 0x80 }; // std r16,local_80(r1)
 
 	// Pattern 6: Freespace Percentage (not used in this patcher, but included for reference and untested.)
@@ -191,10 +191,10 @@ int main() {
     DeleteFile(L"lv2_kernel.elf");
     DeleteFile(L"emer_init.elf");
 
-    cout << "\n[+] SUCCESS! All patched files have been created successfully." <<
+    cout << "\n[+] SUCCESS! All patched files have been created successfully. \n" <<
             "\n[+] PLEASE NOTE: The patched files are named with a 'P' suffix (e.g., lv2_kernelP.self)."
             "\n[+] WARNING: You must test lv2_kernelP.self before using it. Copy it to a USB FAT32 flash drive with original name \"lv2_kernel.self\" and load it using \"Advance Service"
-            "\n[+] Tools\" with the right most USB port (/USB00000) and make sure it doesn\'t red light upon reboot or fail to load the patched kernel." <<
+            "Tools\" with the right most USB port (/USB00000) and make sure the PS3 doesn\'t start blinking red lights upon reboot or failure to load the patched kernel.\n" <<
             "\n[+] You may now create your NEW-PS3UPDAT.PUP using PUAD GUI and the repacking option by replacing the original files." << endl;
     system("pause");
     return 0;
