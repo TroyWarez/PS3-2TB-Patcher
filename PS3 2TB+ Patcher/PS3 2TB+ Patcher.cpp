@@ -104,7 +104,7 @@ int main() {
     vector<uint8_t> FreespacePatch = { 0x3A, 0x40, 0x00, 0x01 }; // 1% ufs freespace percentage
 
     /*
-       NOTE: You must verify these byte patterns in IDA Pro for your specific firmware.
+       NOTE: You must verify these byte patterns in IDA Pro or Ghidra for your specific firmware.
        These are example representations of the assembly described in the documentation.
     */
 
