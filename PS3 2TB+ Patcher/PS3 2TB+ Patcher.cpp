@@ -99,7 +99,7 @@ int main() {
 
     vector<uint8_t> FragmentPatch = { 0x38, 0x00, 0x40, 0x00 }; // 16 KB fragment size
 
-    vector<uint8_t> DensityPatch = { 0x38, 0x00, 0x80, 0x00 }; // 32 KB inode density
+    vector<uint8_t> DensityPatch = { 0x38, 0x00, 0x60, 0x00 }; // 24 KB inode density
 
     vector<uint8_t> FreespacePatch = { 0x3A, 0x40, 0x00, 0x01 }; // 1% ufs freespace percentage
 
@@ -127,12 +127,12 @@ int main() {
 
 	// Pattern 4: emer_init inode density size
     vector<uint8_t> emer_pattern_density = { 0x90, 0x04, 0x00, 0x00, // stw r0,0x0(r4)
-                                      0x38, 0x00, 0x20, 0x00,         // li r0,0x2000 (inode density size)
+                                      0x38, 0x00, 0x20, 0x00,         // li r0,0x2000 (8192 kb inode density size)
                                       0x91, 0x06, 0x00, 0x00 };       // stw r8,0x0(r6)
 
     // Pattern 5: emer_init fragment size
     vector<uint8_t> emer_pattern_fragment = { 0xF8, 0x01, 0x01, 0x10, // std r0,local_res10(r1)
-                                             0x38, 0x00, 0x10, 0x00,  // li r0,0x1000 (fragment size)
+                                             0x38, 0x00, 0x10, 0x00,  // li r0,0x1000 (4096 kb fragment size)
                                              0xFA, 0x01, 0x00, 0x80 }; // std r16,local_80(r1)
 
 	// Pattern 6: Freespace Percentage (not used in this patcher, but included for reference and untested.)
